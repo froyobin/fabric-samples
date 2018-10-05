@@ -23,7 +23,7 @@ LANGUAGE=`echo "$LANGUAGE" | tr [:upper:] [:lower:]`
 COUNTER=1
 MAX_RETRY=5
 
-CC_SRC_PATH="github.com/chaincode/chaincode_example02/go/"
+CC_SRC_PATH="github.com/chaincode/CA/go/"
 if [ "$LANGUAGE" = "node" ]; then
 	CC_SRC_PATH="/opt/gopath/src/github.com/chaincode/chaincode_example02/node/"
 fi
@@ -87,7 +87,7 @@ installChaincode 0 2
 # Instantiate chaincode on peer0.org2
 echo "Instantiating chaincode on peer0.org2..."
 instantiateChaincode 0 2
-
+exit
 # Query chaincode on peer0.org1
 echo "Querying chaincode on peer0.org1..."
 chaincodeQuery 0 1 100

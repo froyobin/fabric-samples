@@ -148,7 +148,7 @@ function checkPrereqs() {
 
 # Generate the needed certificates, the genesis block and start the network.
 function networkUp() {
-  checkPrereqs
+  #checkPrereqs
   # generate artifacts if they don't exist
   if [ ! -d "crypto-config" ]; then
     generateCerts
@@ -433,9 +433,9 @@ function generateChannelArtifacts() {
 OS_ARCH=$(echo "$(uname -s | tr '[:upper:]' '[:lower:]' | sed 's/mingw64_nt.*/windows/')-$(uname -m | sed 's/x86_64/amd64/g')" | awk '{print tolower($0)}')
 # timeout duration - the duration the CLI should wait for a response from
 # another container before giving up
-CLI_TIMEOUT=50
+CLI_TIMEOUT=10
 # default for delay between commands
-CLI_DELAY=20
+CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
 # use this as the default docker-compose yaml definition
@@ -515,7 +515,7 @@ else
   echo "${EXPMODE} for channel '${CHANNEL_NAME}' with CLI timeout of '${CLI_TIMEOUT}' seconds and CLI delay of '${CLI_DELAY}' seconds"
 fi
 # ask for confirmation to proceed
-askProceed
+#askProceed
 
 #Create the network using docker compose
 if [ "${MODE}" == "up" ]; then
