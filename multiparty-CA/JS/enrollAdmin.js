@@ -39,8 +39,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
     	verify: false
     };
     // be sure to change the http to https when the CA is running TLS enabled
-    // the name of the ca server here is ca-org1, it should be the same as the variable FABRIC_CA_SERVER_CA_NAME in docker-compose--e2e.yaml
-    fabric_ca_client = new Fabric_CA_Client('https://localhost:7054', tlsOptions , 'ca-org1', crypto_suite);
+    fabric_ca_client = new Fabric_CA_Client('http://localhost:7054', tlsOptions , 'ca-org1', crypto_suite);
 
     // first check to see if the admin is already enrolled
     return fabric_client.getUserContext('admin', true);

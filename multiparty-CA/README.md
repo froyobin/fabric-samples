@@ -5,3 +5,5 @@ The directions for using this are documented in the Hyperledger Fabric
 
 *NOTE:* After navigating to the documentation, choose the documentation version that matches your version of Fabric
 
+I have already chage TLS_ENABLE to false
+

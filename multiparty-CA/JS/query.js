@@ -11,15 +11,15 @@
 var Fabric_Client = require('fabric-client');
 var path = require('path');
 var util = require('util');
+var fs= require('fs');
 var os = require('os');
-
+var out
 //
 var fabric_client = new Fabric_Client();
 
 // setup the fabric network
 var channel = fabric_client.newChannel('mychannel');
-var peer = fabric_client.newPeer('grpcs://localhost:7051',{pem:"./fina.pem"});
-//var peer = fabric_client.newPeer('grpc://localhost:7051');
+var peer = fabric_client.newPeer('grpc://localhost:7051');
 channel.addPeer(peer);
 
 //
@@ -28,14 +28,32 @@ var store_path = path.join(__dirname, 'hfc-key-store');
 console.log('Store path:'+store_path);
 var tx_id = null;
 
+
+
+
+var start = process.hrtime();
+var elapsed_time = function(note){
+	    var precision = 3; // 3 decimal places
+	    var elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
+	    // console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms - " + note); // print message + time
+	    start = process.hrtime(); // reset the timer
+	    fs.appendFile('message.txt', note +": "+  elapsed.toFixed(precision)+"\n", (err) => {
+		      if (err) throw err;
+		      console.log('The file has been saved!');
+	    });
+}
+function getclinet(querydata){
+	if (querydata.length == 0){
+		return
+	}
 // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
 Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).then((state_store) => {
 	// assign the store to the fabric client
 	fabric_client.setStateStore(state_store);
 	var crypto_suite = Fabric_Client.newCryptoSuite();
-	// use the same location for the state store (where the users' certificate are kept)
-	// and the crypto store (where the users' keys are kept)
+// use the same location for theu state store (where the users' certificate are kept)
+// and the crypto store (where the users' keys are kept)
 	var crypto_store = Fabric_Client.newCryptoKeyStore({path: store_path});
 	crypto_suite.setCryptoKeyStore(crypto_store);
 	fabric_client.setCryptoSuite(crypto_suite);
@@ -49,30 +67,76 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	} else {
 		throw new Error('Failed to get user1.... run registerUser.js');
 	}
+
 	// queryCar chaincode function - requires 1 argument, ex: args: ['CAR4'],
 	// queryAllCars chaincode function - requires no arguments , ex: args: [''],
+
+  console.log("the query is ", querydata)
+
 	const request = {
 		//targets : --- letting this default to the peers assigned to the channel
 		chaincodeId: 'mycc',
 		fcn: 'query',
-		args: ['a']
+		args: [querydata]
 	};
-
+	 start = process.hrtime();
+	out =  channel.queryByChaincode(request);
+	elapsed_time(querydata)
 	// send the query proposal to the peer
-	return channel.queryByChaincode(request);
+	return out;
+
 }).then((query_responses) => {
 	console.log("Query has completed, checking results");
-	return
 	// query_responses could have more than one  results if there multiple peers were used as targets
 	if (query_responses && query_responses.length == 1) {
 		if (query_responses[0] instanceof Error) {
 			console.error("error from query = ", query_responses[0]);
 		} else {
-			console.log("Response is ", query_responses[0].toString());
+			try{
+			 var temp = JSON.parse(query_responses[0].toString());
+		 }catch(e){
+			
+	    	      fs.appendFile('messagestatus.txt', querydata+": ERROR" +"\n", (err) => {
+		      if (err) throw err;
+		      console.log('The file has been saved!');
+	    });
+			 consoesttttle.log("can't parse in JSON!");
+			 return "none"
+		 }
+			//console.log("Response is ", query_responses[0].toString());
+	    	      fs.appendFile('messagestatus.txt', querydata +": OK" +"\n", (err) => {
+		      if (err) throw err;
+		      console.log('The file has been saved!');
+	    });
+			 console.log("response is", temp.Key)
 		}
 	} else {
+	    	      fs.appendFile('messagestatus.txt', querydata +": ERROR" +"\n", (err) => {
+		      if (err) throw err;
+		      console.log('The file has been saved!');
+	    });
 		console.log("No payloads were returned from query");
 	}
 }).catch((err) => {
 	console.error('Failed to query successfully :: ' + err);
 });
+	return "ok"
+}
+
+fs.readFile('./url.dat', 'utf-8', (err, file) => {
+  const lines = file.split('\n')
+  for (let line of lines)
+
+  getclinet(line)
+
+
+});
+
+
+
+//
+// for(var i = 0; i < 5;i++){
+//
+// getclinet()
+//
+// }
