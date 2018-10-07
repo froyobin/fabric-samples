@@ -12,6 +12,23 @@ var Fabric_Client = require('fabric-client');
 var path = require('path');
 var util = require('util');
 var os = require('os');
+var fs= require('fs');
+
+
+
+var start = process.hrtime();
+var elapsed_time = function(note){
+	    var precision = 3; // 3 decimal places
+	    var elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
+	    // console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms - " + note); // print message + time
+	    // start = process.hrtime(); // reset the timer
+	    fs.appendFile('invokemessage.txt', note +": "+ process.hrtime(start)[0]+"-" +elapsed.toFixed(precision)+"\n", (err) => {
+		      if (err) throw err;
+		      // console.log('The file has been saved!');
+	    });
+}
+
+
 
 //
 var fabric_client = new Fabric_Client();
@@ -32,6 +49,10 @@ console.log('Store path:'+store_path);
 var tx_id = null;
 
 // create the key value store as defined in the fabric-client/config/default.json 'key-value-store' setting
+function getInvoke(invokedata){
+	if (invokedata.length == 0){
+		return
+	}
 Fabric_Client.newDefaultKeyValueStore({ path: store_path
 }).then((state_store) => {
 	// assign the store to the fabric client
@@ -53,9 +74,11 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 		throw new Error('Failed to get user1.... run registerUser.js');
 	}
 
+	start = process.hrtime();
+
 	// get a transaction id object based on the current user assigned to fabric client
 	tx_id = fabric_client.newTransactionID();
-	console.log("Assigning transaction_id: ", tx_id._transaction_id);
+	// console.log("Assigning transaction_id: ", tx_id._transaction_id);
 
 	// createCar chaincode function - requires 5 args, ex: args: ['CAR12', 'Honda', 'Accord', 'Black', 'Tom'],
 	// changeCarOwner chaincode function - requires 2 args , ex: args: ['CAR10', 'Dave'],
@@ -64,7 +87,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 		//targets: let default to the peer assigned to the client
 		chaincodeId: 'mycc',
 		fcn: 'uploaddomain',
-		args: ["yubin","sssssssssss"],
+		args: [invokedata,"sssssssssss"],
 		chainId: 'mychannel',
 		txId: tx_id
 	};
@@ -78,14 +101,15 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	if (proposalResponses && proposalResponses[0].response &&
 		proposalResponses[0].response.status === 200) {
 			isProposalGood = true;
-			console.log('Transaction proposal was good');
-		} else {
-			console.error('Transaction proposal was bad');
+			// console.log('Transaction proposal was good');
 		}
+		// } else {
+		// 	console.error('Transaction proposal was bad');
+		// }
 	if (isProposalGood) {
-		console.log(util.format(
-			'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s"',
-			proposalResponses[0].response.status, proposalResponses[0].response.message));
+		// console.log(util.format(
+		// 	'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s"',
+		// 	proposalResponses[0].response.status, proposalResponses[0].response.message));
 
 		// build up the request for the orderer to have the transaction committed
 		var request = {
@@ -123,10 +147,10 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 				// now let the application know what happened
 				var return_status = {event_status : code, tx_id : transaction_id_string};
 				if (code !== 'VALID') {
-					console.error('The transaction was invalid, code = ' + code);
+					// console.error('The transaction was invalid, code = ' + code);
 					resolve(return_status); // we could use reject(new Error('Problem with the tranaction, event status ::'+code));
 				} else {
-					console.log('The transaction has been committed on peer ' + event_hub.getPeerAddr());
+					// console.log('The transaction has been committed on peer ' + event_hub.getPeerAddr());
 					resolve(return_status);
 				}
 			}, (err) => {
@@ -142,23 +166,48 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 
 		return Promise.all(promises);
 	} else {
-		console.error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
+		// console.error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
 		throw new Error('Failed to send Proposal or receive valid response. Response null or status is not 200. exiting...');
 	}
 }).then((results) => {
-	console.log('Send transaction promise and event listener promise have completed');
+	// console.log('Send transaction promise and event listener promise have completed');
 	// check the results in the order the promises were added to the promise all list
-	if (results && results[0] && results[0].status === 'SUCCESS') {
-		console.log('Successfully sent transaction to the orderer.');
-	} else {
-		console.error('Failed to order the transaction. Error code: ' + results[0].status);
-	}
+	// if (results && results[0] && results[0].status === 'SUCCESS') {
+	// 	console.log('Successfully sent transaction to the orderer.');
+	// } else {
+	// 	 console.error('Failed to order the transaction. Error code: ' + results[0].status);
+	// }
 
 	if(results && results[1] && results[1].event_status === 'VALID') {
-		console.log('Successfully committed the change to the ledger by the peer');
+		elapsed_time(invokedata)
+		// console.log('Successfully committed the change to the ledger by the peer');
+
+		fs.appendFile('Invokestatus.txt', invokedata+": OK" +"\n", (err) => {
+		 if (err) throw err;
+		 // console.log('The file has been saved!');
+ });
+
 	} else {
+
+		fs.appendFile('messagestatus.txt', invokedata+": ERROR" +"\n", (err) => {
+		 if (err) throw err;
+		 // console.log('The file has been saved!');
+		});
+
 		console.log('Transaction failed to be committed to the ledger due to ::'+results[1].event_status);
 	}
 }).catch((err) => {
+
+	fs.appendFile('messagestatus.txt', invokedata+": ERROR" +"\n", (err) => {
+	 if (err) throw err;
+	});
+
 	console.error('Failed to invoke successfully :: ' + err);
+});
+}
+
+fs.readFile('./url.dat', 'utf-8', (err, file) => {
+  const lines = file.split('\n')
+  for (let line of lines)
+  getInvoke(line);
 });
