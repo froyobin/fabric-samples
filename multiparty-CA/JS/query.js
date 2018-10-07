@@ -37,9 +37,9 @@ var elapsed_time = function(note){
 	    var elapsed = process.hrtime(start)[1] / 1000000; // divide by a million to get nano to milli
 	    // console.log(process.hrtime(start)[0] + " s, " + elapsed.toFixed(precision) + " ms - " + note); // print message + time
 	    start = process.hrtime(); // reset the timer
-	    fs.appendFile('message.txt', note +": "+  elapsed.toFixed(precision)+"\n", (err) => {
+	    fs.appendFile('message.txt', note +": " + process.hrtime(start)[0]+ "-" +  elapsed.toFixed(precision)+"\n", (err) => {
 		      if (err) throw err;
-		      console.log('The file has been saved!');
+		      // console.log('The file has been saved!');
 	    });
 }
 function getclinet(querydata){
@@ -71,7 +71,7 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	// queryCar chaincode function - requires 1 argument, ex: args: ['CAR4'],
 	// queryAllCars chaincode function - requires no arguments , ex: args: [''],
 
-  console.log("the query is ", querydata)
+  // console.log("the query is ", querydata)
 
 	const request = {
 		//targets : --- letting this default to the peers assigned to the channel
@@ -95,10 +95,10 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 			try{
 			 var temp = JSON.parse(query_responses[0].toString());
 		 }catch(e){
-			
-	    	      fs.appendFile('messagestatus.txt', querydata+": ERROR" +"\n", (err) => {
+
+	    	 fs.appendFile('messagestatus.txt', querydata+": ERROR" +"\n", (err) => {
 		      if (err) throw err;
-		      console.log('The file has been saved!');
+		      // console.log('The file has been saved!');
 	    });
 			 consoesttttle.log("can't parse in JSON!");
 			 return "none"
@@ -106,14 +106,14 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 			//console.log("Response is ", query_responses[0].toString());
 	    	      fs.appendFile('messagestatus.txt', querydata +": OK" +"\n", (err) => {
 		      if (err) throw err;
-		      console.log('The file has been saved!');
+		      // console.log('The file has been saved!');
 	    });
-			 console.log("response is", temp.Key)
+			 // console.log("response is", temp.Key)
 		}
 	} else {
 	    	      fs.appendFile('messagestatus.txt', querydata +": ERROR" +"\n", (err) => {
 		      if (err) throw err;
-		      console.log('The file has been saved!');
+		      // console.log('The file has been saved!');
 	    });
 		console.log("No payloads were returned from query");
 	}
