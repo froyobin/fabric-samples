@@ -101,11 +101,10 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 	if (proposalResponses && proposalResponses[0].response &&
 		proposalResponses[0].response.status === 200) {
 			isProposalGood = true;
-			// console.log('Transaction proposal was good');
+			console.log('Transaction proposal was good');
+		}else {
+			console.error('Transaction proposal was bad');
 		}
-		// } else {
-		// 	console.error('Transaction proposal was bad');
-		// }
 	if (isProposalGood) {
 		// console.log(util.format(
 		// 	'Successfully sent Proposal and received ProposalResponse: Status - %s, message - "%s"',
@@ -206,8 +205,21 @@ Fabric_Client.newDefaultKeyValueStore({ path: store_path
 });
 }
 
-fs.readFile('./url.dat', 'utf-8', (err, file) => {
-  const lines = file.split('\n')
-  for (let line of lines)
-  getInvoke(line);
+
+process.argv.forEach(function (val, index, array) {
+  //console.log(index + ': ' + val);
+	if (index<2){
+
+	}else{
+		 // console.log(index + ': ' + val);
+		 getInvoke(val)
+	}
 });
+
+// getInvoke(process.argv[2])
+
+// fs.readFile('./url.dat', 'utf-8', (err, file) => {
+//   const lines = file.split('\n')
+//   for (let line of lines)
+//   getInvoke(line);
+// });
